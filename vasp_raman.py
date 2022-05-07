@@ -173,10 +173,16 @@ def get_epsilon_from_OUTCAR(outcar_fh):
             break
         #
         if "MACROSCOPIC STATIC DIELECTRIC TENSOR" in line:
-            outcar_fh.readline()
-            epsilon.append([float(x) for x in outcar_fh.readline().split()])
-            epsilon.append([float(x) for x in outcar_fh.readline().split()])
-            epsilon.append([float(x) for x in outcar_fh.readline().split()])
+            try:
+                outcar_fh.readline()
+                epsilon.append([float(x) for x in outcar_fh.readline().split()])
+                epsilon.append([float(x) for x in outcar_fh.readline().split()])
+                epsilon.append([float(x) for x in outcar_fh.readline().split()])
+            except Exception as e:
+                raise e
+                # from lxml import etree as ET
+                # doc = ET.parse('vasprun.xml')
+                # epsilon = [[float(x) for x in c.text.split()] for c in doc.xpath("/modeling/calculation/varray")[3].getchildren()]
             return epsilon
     #
     raise RuntimeError("[get_epsilon_from_OUTCAR]: ERROR Couldn't find dielectric tensor in OUTCAR")
@@ -234,7 +240,7 @@ if __name__ == '__main__':
     first, last, nderiv, step_size = parse_env_params(VASP_RAMAN_PARAMS)
     assert first >= 1,    '[__main__]: First mode should be equal or larger than 1'
     assert last >= first, '[__main__]: Last mode should be equal or larger than first mode'
-    if args['gen']: assert last == first, "[__main__]: '-gen' mode -> only generation for the one mode makes sense"
+    # if args['gen']: assert last == first, "[__main__]: '-gen' mode -> only generation for the one mode makes sense"
     assert nderiv == 2,   '[__main__]: At this time, nderiv = 2 is the only supported'
     disps = [-1, 1]      # hardcoded for
     coeffs = [-0.5, 0.5] # three point stencil (nderiv=2)
@@ -262,7 +268,7 @@ if __name__ == '__main__':
         eigvals = parse_freqdat(freqdat_fh, nat)
         freqdat_fh.close()
         #
-        try: 
+        try:
             modes_fh = open('modes_sqrt_amu.dat' , 'r')
         except IOError:
             print("[__main__]: ERROR Couldn't open modes_sqrt_amu.dat, exiting...\n")
@@ -319,13 +325,13 @@ if __name__ == '__main__':
                     print("[__main__]: Using provided POSCAR")
                 #
                 if args['gen']: # only generate POSCARs
-                    poscar_fn = 'POSCAR.%+d.out' % disps[j]
+                    poscar_fn = 'POSCAR.%04d.%+d.out' % (i+1, disps[j])
                     move('POSCAR', poscar_fn)
                     print("[__main__]: '-gen' mode -> "+poscar_fn+" with displaced atoms have been generated")
                     #
-                    if j+1 == len(disps): # last iteration for the current displacements list
-                        print("[__main__]: '-gen' mode -> POSCAR files with displaced atoms have been generated, exiting now")
-                        sys.exit(0)
+                    # if j+1 == len(disps): # last iteration for the current displacements list
+                    #     print("[__main__]: '-gen' mode -> POSCAR files with displaced atoms have been generated, exiting now")
+                    #     sys.exit(0)
                 else: # run VASP here
                     print("[__main__]: Running VASP...")
                     os.system(VASP_RAMAN_RUN)
@@ -337,6 +343,8 @@ if __name__ == '__main__':
                     #
                     outcar_fh = open(disp_filename, 'r')
             #
+            if args['gen']: # only generate POSCARs
+                continue
             try:
                 eps = get_epsilon_from_OUTCAR(outcar_fh)
                 outcar_fh.close()
@@ -351,6 +359,8 @@ if __name__ == '__main__':
                     ra[m][n]   += eps[m][n] * coeffs[j]/step_size * norm * vol/(4.0*pi)
             #units: A^2/amu^1/2 =         dimless   * 1/A         * 1/amu^1/2  * A^3
         #
+        if args['gen']: # only generate POSCARs
+            continue
         alpha = (ra[0][0] + ra[1][1] + ra[2][2])/3.0
         beta2 = ( (ra[0][0] - ra[1][1])**2 + (ra[0][0] - ra[2][2])**2 + (ra[1][1] - ra[2][2])**2 + 6.0 * (ra[0][1]**2 + ra[0][2]**2 + ra[1][2]**2) )/2.0
         print("")
