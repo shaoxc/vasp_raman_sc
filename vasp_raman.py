@@ -39,7 +39,7 @@ def parse_poscar(poscar_fh):
     #
     scale = float(lines[1])
     if scale < 0.0:
-        print "[parse_poscar]: ERROR negative scale not implemented."
+        print("[parse_poscar]: ERROR negative scale not implemented.")
         sys.exit(1)
     #
     b = []
@@ -84,7 +84,7 @@ def parse_poscar(poscar_fh):
 def parse_env_params(params):
     tmp = params.strip().split('_')
     if len(tmp) != 4:
-        print "[parse_env_params]: ERROR there should be exactly four parameters"
+        print("[parse_env_params]: ERROR there should be exactly four parameters")
         sys.exit(1)
     #
     [first, last, nderiv, step_size] = [int(tmp[0]), int(tmp[1]), int(tmp[2]), float(tmp[3])]
@@ -160,7 +160,7 @@ def get_modes_from_OUTCAR(outcar_fh, nat):
             #
             return eigvals, eigvecs, norms
         #
-    print "[get_modes_from_OUTCAR]: ERROR Couldn't find 'Eigenvectors after division by SQRT(mass)' in OUTCAR. Use 'NWRITE=3' in INCAR. Exiting..."
+    print("[get_modes_from_OUTCAR]: ERROR Couldn't find 'Eigenvectors after division by SQRT(mass)' in OUTCAR. Use 'NWRITE=3' in INCAR. Exiting...")
     sys.exit(1)
 #
 def get_epsilon_from_OUTCAR(outcar_fh):
@@ -191,16 +191,16 @@ if __name__ == '__main__':
     #import argparse
     import optparse
     #
-    print ""
-    print "    Raman off-resonant activity calculator,"
-    print "    using VASP as a back-end."
-    print ""
-    print "    Contributors: Alexandr Fonari  (Georgia Tech)"
-    print "                  Shannon Stauffer (UT Austin)"
-    print "    MIT License, 2013"
-    print "    URL: http://raman-sc.github.io"
-    print "    Started at: "+datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    print ""
+    print("")
+    print("    Raman off-resonant activity calculator,")
+    print("    using VASP as a back-end.")
+    print("")
+    print("    Contributors: Alexandr Fonari  (Georgia Tech)")
+    print("                  Shannon Stauffer (UT Austin)")
+    print("    MIT License, 2013")
+    print("    URL: http://raman-sc.github.io")
+    print("    Started at: "+datetime.datetime.now().strftime("%Y-%m-%d %H:%M"))
+    print("")
     #
     description  = "Before run, set environment variables:\n"
     description += "    VASP_RAMAN_RUN='mpirun vasp'\n"
@@ -217,19 +217,19 @@ if __name__ == '__main__':
     #
     VASP_RAMAN_RUN = os.environ.get('VASP_RAMAN_RUN')
     if VASP_RAMAN_RUN == None:
-        print "[__main__]: ERROR Set environment variable 'VASP_RAMAN_RUN'"
-        print ""
+        print("[__main__]: ERROR Set environment variable 'VASP_RAMAN_RUN'")
+        print("")
         parser.print_help()
         sys.exit(1)
-    print "[__main__]: VASP_RAMAN_RUN='"+VASP_RAMAN_RUN+"'"
+    print("[__main__]: VASP_RAMAN_RUN='"+VASP_RAMAN_RUN+"'")
     #
     VASP_RAMAN_PARAMS = os.environ.get('VASP_RAMAN_PARAMS')
     if VASP_RAMAN_PARAMS == None:
-        print "[__main__]: ERROR Set environment variable 'VASP_RAMAN_PARAMS'"
-        print ""
+        print("[__main__]: ERROR Set environment variable 'VASP_RAMAN_PARAMS'")
+        print("")
         parser.print_help()
         sys.exit(1)
-    print "[__main__]: VASP_RAMAN_PARAMS='"+VASP_RAMAN_PARAMS+"'"
+    print("[__main__]: VASP_RAMAN_PARAMS='"+VASP_RAMAN_PARAMS+"'")
     #
     first, last, nderiv, step_size = parse_env_params(VASP_RAMAN_PARAMS)
     assert first >= 1,    '[__main__]: First mode should be equal or larger than 1'
@@ -242,12 +242,12 @@ if __name__ == '__main__':
     try:
         poscar_fh = open('POSCAR.phon', 'r')
     except IOError:
-        print "[__main__]: ERROR Couldn't open input file POSCAR.phon, exiting...\n"
+        print("[__main__]: ERROR Couldn't open input file POSCAR.phon, exiting...\n")
         sys.exit(1)
     #
     # nat, vol, b, poscar_header = parse_poscar_header(poscar_fh)
     nat, vol, b, pos, poscar_header = parse_poscar(poscar_fh)
-    print pos
+    print(pos)
     #print poscar_header
     #sys.exit(0)
     #
@@ -256,7 +256,7 @@ if __name__ == '__main__':
         try:
             freqdat_fh = open('freq.dat', 'r')
         except IOError:
-            print "[__main__]: ERROR Couldn't open freq.dat, exiting...\n"
+            print("[__main__]: ERROR Couldn't open freq.dat, exiting...\n")
             sys.exit(1)
         #
         eigvals = parse_freqdat(freqdat_fh, nat)
@@ -265,7 +265,7 @@ if __name__ == '__main__':
         try: 
             modes_fh = open('modes_sqrt_amu.dat' , 'r')
         except IOError:
-            print "[__main__]: ERROR Couldn't open modes_sqrt_amu.dat, exiting...\n"
+            print("[__main__]: ERROR Couldn't open modes_sqrt_amu.dat, exiting...\n")
             sys.exit(1)
         #
         eigvecs, norms = parse_modesdat(modes_fh, nat)
@@ -275,14 +275,14 @@ if __name__ == '__main__':
         try:
             outcar_fh = open('OUTCAR.phon', 'r')
         except IOError:
-            print "[__main__]: ERROR Couldn't open OUTCAR.phon, exiting...\n"
+            print("[__main__]: ERROR Couldn't open OUTCAR.phon, exiting...\n")
             sys.exit(1)
         #
         eigvals, eigvecs, norms = get_modes_from_OUTCAR(outcar_fh, nat)
         outcar_fh.close()
     #
     else:
-        print "[__main__]: Neither OUTCAR.phon nor freq.dat/modes_sqrt_amu.dat were found, nothing to do, exiting..."
+        print("[__main__]: Neither OUTCAR.phon nor freq.dat/modes_sqrt_amu.dat were found, nothing to do, exiting...")
         sys.exit(1)
     #
     output_fh = open('vasp_raman.dat', 'w')
@@ -292,8 +292,8 @@ if __name__ == '__main__':
         eigvec = eigvecs[i]
         norm = norms[i]
         #
-        print ""
-        print "[__main__]: Mode #%i: frequency %10.7f cm-1; norm: %10.7f" % ( i+1, eigval, norm )
+        print("")
+        print("[__main__]: Mode #%i: frequency %10.7f cm-1; norm: %10.7f" % ( i+1, eigval, norm ))
         #
         ra = [[0.0 for x in range(3)] for y in range(3)]
         for j in range(len(disps)):
@@ -301,10 +301,10 @@ if __name__ == '__main__':
             #
             try:
                 outcar_fh = open(disp_filename, 'r')
-                print "[__main__]: File "+disp_filename+" exists, parsing..."
+                print("[__main__]: File "+disp_filename+" exists, parsing...")
             except IOError:
                 if args['use_poscar'] != True:
-                    print "[__main__]: File "+disp_filename+" not found, preparing displaced POSCAR"
+                    print("[__main__]: File "+disp_filename+" not found, preparing displaced POSCAR")
                     poscar_fh = open('POSCAR', 'w')
                     poscar_fh.write("%s %4.1e \n" % (disp_filename, step_size))
                     poscar_fh.write(poscar_header)
@@ -316,23 +316,23 @@ if __name__ == '__main__':
                         #print '%10.6f %10.6f %10.6f %10.6f %10.6f %10.6f' % (pos[k][0], pos[k][1], pos[k][2], dis[k][0], dis[k][1], dis[k][2])
                     poscar_fh.close()
                 else:
-                    print "[__main__]: Using provided POSCAR"
+                    print("[__main__]: Using provided POSCAR")
                 #
                 if args['gen']: # only generate POSCARs
                     poscar_fn = 'POSCAR.%+d.out' % disps[j]
                     move('POSCAR', poscar_fn)
-                    print "[__main__]: '-gen' mode -> "+poscar_fn+" with displaced atoms have been generated"
+                    print("[__main__]: '-gen' mode -> "+poscar_fn+" with displaced atoms have been generated")
                     #
                     if j+1 == len(disps): # last iteration for the current displacements list
-                        print "[__main__]: '-gen' mode -> POSCAR files with displaced atoms have been generated, exiting now"
+                        print("[__main__]: '-gen' mode -> POSCAR files with displaced atoms have been generated, exiting now")
                         sys.exit(0)
                 else: # run VASP here
-                    print "[__main__]: Running VASP..."
+                    print("[__main__]: Running VASP...")
                     os.system(VASP_RAMAN_RUN)
                     try:
                         move('OUTCAR', disp_filename)
                     except IOError:
-                        print "[__main__]: ERROR Couldn't find OUTCAR file, exiting..."
+                        print("[__main__]: ERROR Couldn't find OUTCAR file, exiting...")
                         sys.exit(1)
                     #
                     outcar_fh = open(disp_filename, 'r')
@@ -340,9 +340,9 @@ if __name__ == '__main__':
             try:
                 eps = get_epsilon_from_OUTCAR(outcar_fh)
                 outcar_fh.close()
-            except Exception, err:
-                print err
-                print "[__main__]: Moving "+disp_filename+" back to 'OUTCAR' and exiting..."
+            except Exception as err:
+                print(err)
+                print("[__main__]: Moving "+disp_filename+" back to 'OUTCAR' and exiting...")
                 move(disp_filename, 'OUTCAR')
                 sys.exit(1)
             #
@@ -353,8 +353,8 @@ if __name__ == '__main__':
         #
         alpha = (ra[0][0] + ra[1][1] + ra[2][2])/3.0
         beta2 = ( (ra[0][0] - ra[1][1])**2 + (ra[0][0] - ra[2][2])**2 + (ra[1][1] - ra[2][2])**2 + 6.0 * (ra[0][1]**2 + ra[0][2]**2 + ra[1][2]**2) )/2.0
-        print ""
-        print "! %4i  freq: %10.5f  alpha: %10.7f  beta2: %10.7f  activity: %10.7f " % (i+1, eigval, alpha, beta2, 45.0*alpha**2 + 7.0*beta2)
+        print("")
+        print("! %4i  freq: %10.5f  alpha: %10.7f  beta2: %10.7f  activity: %10.7f " % (i+1, eigval, alpha, beta2, 45.0*alpha**2 + 7.0*beta2))
         output_fh.write("%03i  %10.5f  %10.7f  %10.7f  %10.7f\n" % (i+1, eigval, alpha, beta2, 45.0*alpha**2 + 7.0*beta2))
         output_fh.flush()
     #
